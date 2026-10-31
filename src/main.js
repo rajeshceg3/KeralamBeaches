@@ -1,3 +1,4 @@
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const app = document.querySelector('#app');
 app.innerHTML = `
   <canvas class="webgl" aria-label="Animated impressionist Kerala coastline"></canvas>
@@ -24,16 +25,16 @@ function paint(t){
   for(let i=0;i<220;i++){ const x=((i*83 + t*.018*(i%7+1))%width); const y=(Math.sin(i*12.7+t*.001)*30+horizon+(i%90)/90*(height-horizon)); const hue=i%3===0?'255,236,177':i%3===1?'77,215,218':'20,112,129'; dab(x,y,18+(i%11)*2,`rgb(${hue})`,.13); }
   for(let i=0;i<22;i++){ const y=horizon+i*height*.028+Math.sin(t*.001+i)*14; ctx.strokeStyle=`rgba(255,245,207,${.28-i*.006})`; ctx.lineWidth=2+devicePixelRatio; ctx.beginPath(); for(let x=0;x<width;x+=40){ctx.lineTo(x,y+Math.sin(x*.012+t*.001+i)*10)} ctx.stroke(); }
   ctx.save(); ctx.translate(width*.13,height*.61); ctx.rotate(-.22+Math.sin(t*.001)*.035); ctx.fillStyle='rgba(8,61,42,.72)'; ctx.fillRect(-8,-height*.34,16,height*.38); for(let i=0;i<10;i++){ ctx.rotate((Math.PI*2)/10); ctx.beginPath(); ctx.ellipse(70,0,92,14,0,0,Math.PI*2); ctx.fill(); } ctx.restore();
-  requestAnimationFrame(paint);
+  if (!reduceMotion) requestAnimationFrame(paint);
 }
 requestAnimationFrame(paint);
 
 function update(){ scrollProgress = Math.min(1, scrollY / (innerHeight*1.8)); document.documentElement.style.setProperty('--scroll', scrollProgress.toFixed(3)); document.querySelectorAll('.panel').forEach(p=>{ const r=p.getBoundingClientRect(); p.style.setProperty('--reveal', Math.max(0, Math.min(1, 1-Math.abs(r.top-innerHeight*.25)/innerHeight)).toFixed(3)); }); }
 addEventListener('scroll', update, {passive:true}); update();
 
-if (window.gsap && window.ScrollTrigger) {
+if (!reduceMotion && window.gsap && window.ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
   gsap.to(':root',{ '--scroll': 1, ease:'none', scrollTrigger:{ trigger:'#hero', start:'top top', end:'+=180%', scrub:true, pin:true }});
   gsap.utils.toArray('.panel').forEach(panel => gsap.from(panel.querySelectorAll('h1 span,h2,p'), { y:80, opacity:0, filter:'blur(18px)', stagger:.08, scrollTrigger:{ trigger:panel, start:'top 70%', end:'center center', scrub:1 }}));
 }
-if (window.Lenis) { const lenis = new Lenis({lerp:.075,smoothWheel:true}); function raf(time){ lenis.raf(time); requestAnimationFrame(raf); } requestAnimationFrame(raf); }
+if (!reduceMotion && window.Lenis) { const lenis = new Lenis({lerp:.075,smoothWheel:true}); function raf(time){ lenis.raf(time); requestAnimationFrame(raf); } requestAnimationFrame(raf); }
