@@ -1,6 +1,6 @@
 # Keralam Beaches
 
-A cinematic scrollytelling journey across the beaches of Kerala - Kovalam, Varkala, Marari, Bekal and beyond.
+A cinematic scrollytelling journey up Kerala's coast - Kovalam, Varkala, Alappuzha, Marari and Bekal - painted live in the browser in Monet-inspired broken colour. Each shore folds its verified story inside a progressive-disclosure card; sources are Kerala Tourism's destination notes, linked in the colophon.
 
 ## Develop
 
