@@ -12,58 +12,53 @@ const SOURCES = {
 
 const CHAPTERS = [
   {
-    id: 'kovalam', num: '01', place: 'Kovalam', district: 'Thiruvananthapuram',
-    headline: 'Three crescents cup the tide into stillness.',
-    lede: 'A rocky headland breaks the swell, and the bay behind it turns to glass - the swimming here is as gentle as the light.',
+    id: 'kovalam', place: 'Kovalam',
+    headline: 'Three crescents cup the tide into stillness - a rocky headland breaks the swell, and the bay behind it turns to glass.',
     cue: 'Why the water stays calm',
     facts: [
-      ['Singular', 'Kovalam is three crescent-shaped beaches in a row. Their rocky headland tames the Arabian Sea into a calm, shallow bay - a rare gift on this coast.'],
-      ['Signature', 'Climb the red-and-white Vizhinjam lighthouse - 36 metres tall, standing since 1972 - for the full curve of the shoreline. Catamarans still carry visitors out beyond the breakers.'],
-      ['Season', 'November to March, when the air is cool and the sea is at its kindest.']
+      'Three crescent beaches in a row, their rocky headland taming the Arabian Sea into a sheltered bay.',
+      'The red-and-white Vizhinjam lighthouse has stood here since 1972; climb its 36 metres for the full curve of the coast.',
+      'Kindest from November to March.'
     ]
   },
   {
-    id: 'varkala', num: '02', place: 'Varkala', district: 'Thiruvananthapuram',
-    headline: 'Red cliffs lean over a sea that forgives.',
-    lede: 'Laterite walls, rust-red and weathered, hold the beach in a natural amphitheatre of wind and spray.',
-    cue: 'The only cliffs on the coast',
+    id: 'varkala', place: 'Varkala',
+    headline: 'Red cliffs lean over a sea that forgives - laterite walls holding the beach in a natural amphitheatre of wind and spray.',
+    cue: 'The cliffs that shouldn\u2019t exist',
     facts: [
-      ['Singular', 'This is the only place in southern Kerala where cliffs stand against the sea. Geologists call them the Varkala Formation, and the Geological Survey of India has declared them a national geological monument.'],
-      ['Signature', 'Below is Papanasam beach - "destruction of sins" - where pilgrims have bathed for centuries beside the ancient Janardhana Swamy temple. Above, the cliff path threads cafes and yoga decks; below, surfers and paragliders work the wind.'],
-      ['Season', 'Come for the daily ceremony: the whole amphitheatre glows at sunset, watched from the cliff edge.']
+      'Kerala Tourism calls this the only place in southern Kerala where cliffs stand against the sea - a national geological monument known to geologists as the Varkala Formation.',
+      'Below is Papanasam, "destruction of sins", where pilgrims have bathed for centuries beside the ancient Janardhana Swamy temple.',
+      'Sunset from the cliff edge is the daily ceremony.'
     ]
   },
   {
-    id: 'alappuzha', num: '03', place: 'Alappuzha', district: 'Alleppey',
-    headline: 'The sea steps back. The lagoons begin.',
-    lede: 'Behind one long beach, nine hundred kilometres of canals, lakes and inlets braid into the "Venice of the East".',
+    id: 'alappuzha', place: 'Alappuzha',
+    headline: 'The sea steps back and the lagoons begin - water streets where the roads should be.',
     cue: 'Nine hundred kilometres of still water',
     facts: [
-      ['Singular', 'Alappuzha\u2019s backwaters are a single labyrinth of canals, rivers, lakes and inlets stretching over 900 kilometres, fringed with coconut palms, paddy fields and quiet villages.'],
-      ['Signature', 'Drift it on a kettuvallam - a houseboat built by hand from bamboo, coir and wood, meals cooked on board as village life slides past. Each August, snake boats race for the Nehru Trophy.'],
-      ['Season', 'October to March for cruising. The monsoon limits the boats but swells the lagoons to their greenest.']
+      'Behind the beach, one labyrinth of canals, lakes and inlets runs over 900 kilometres - the "Venice of the East".',
+      'Drift it on a kettuvallam, a houseboat built by hand from bamboo, coir and wood, meals cooked on board as village life slides past.',
+      'Snake boats race for the Nehru Trophy each August; the cruising season is October to March.'
     ]
   },
   {
-    id: 'marari', num: '04', place: 'Marari', district: 'Alappuzha',
-    headline: 'The beach that kept its quiet.',
-    lede: 'Named for the fishing village of Mararikulam, Marari has no shacks and no water sports. The emptiness is the point.',
+    id: 'marari', place: 'Marari',
+    headline: 'The beach that kept its quiet - palms, sand and time, named for the fishing village of Mararikulam.',
     cue: 'What the quiet is made of',
     facts: [
-      ['Singular', 'Marari is still a working fishing shore. Coconut palms and golden sand, and a village behind it that lives by the sea\u2019s schedule, not the visitor\u2019s.'],
-      ['Signature', 'Walk or cycle into Mararikulam and watch the fishermen at work; if they judge the sea safe, a conversation can end in an impromptu boat ride. Ayurvedic centres nearby treat the other kind of tiredness.'],
-      ['Season', 'Warm and humid all year. The Alappuzha backwaters, Kumarakom Bird Sanctuary and the International Coir Museum all sit within easy reach.']
+      'A working fishing shore: Kerala Tourism notes the beach has no shacks and no water sports, and that absence is the luxury.',
+      'Cycle into the village and watch the fishermen at work; if they judge the sea safe, a conversation can end in a boat ride.',
+      'The Alappuzha backwaters, Kumarakom Bird Sanctuary and the International Coir Museum sit within easy reach.'
     ]
   },
   {
-    id: 'bekal', num: '05', place: 'Bekal', district: 'Kasaragod',
-    headline: 'A stone giant stands watch over gold.',
-    lede: 'Waves comb a vast, secluded shore beneath ramparts of rust-red laterite - history above, emptiness below.',
+    id: 'bekal', place: 'Bekal',
+    headline: 'A stone giant stands watch over gold - history above, emptiness below.',
     cue: 'The fort that guards the beach',
     facts: [
-      ['Singular', 'Bekal Fort - built of laterite slabs in a unique polygonal plan - is the largest and best-preserved fort in Kerala, perched on steep hills where the sea does the sieging now.'],
-      ['Signature', 'Climb the observation towers for a panoramic view of the Arabian Sea, then walk down to a beach so wide it rarely feels occupied.'],
-      ['Season', 'Sunset is the spectacle: the sky runs orange and pink over the sand, and the fort turns to silhouette.']
+      'Kerala\u2019s largest and best-preserved fort: laterite slabs in a unique polygonal plan, observation towers over the Arabian Sea.',
+      'Below the ramparts, a beach so wide it rarely feels occupied.',
+      'Come at sunset, when the sky runs orange and pink and the fort turns to silhouette.'
     ]
   }
 ];
@@ -74,28 +69,24 @@ app.innerHTML = `
   <main>
     <section class="hero panel" id="hero">
       <div class="mist"></div>
-      <p class="eyebrow">The Arabian Sea / shore by shore</p>
       <h1><span>Five shores,</span><span>one long light</span></h1>
-      <p class="lede">A painted journey up Kerala's coast - from Kovalam's crescents to Bekal's fort - each beach rendered in broken tropical colour, each with its true story folded inside.</p>
-      <p class="drift" aria-hidden="true"><span class="buoy"></span>the coast drifts north</p>
+      <p class="lede">A painted journey up Kerala's coast - each beach rendered in broken tropical colour, each with its true story folded inside.</p>
     </section>
     ${CHAPTERS.map(c => `
     <section class="story panel ${c.id}" id="${c.id}">
       <div class="copy">
-        <p class="kicker">${c.num} &middot; ${c.place} &middot; ${c.district}</p>
-        <h2>${c.headline}</h2>
-        <p class="story-lede">${c.lede}</p>
+        <h2>${c.place}</h2>
+        <p class="story-lede">${c.headline}</p>
         <div class="deeper-wrap">
           <button class="deeper" type="button" aria-expanded="false" aria-controls="deep-${c.id}"><span class="pulse" aria-hidden="true"></span>${c.cue}</button>
           <div class="deep" id="deep-${c.id}" hidden>
-            <dl>${c.facts.map(([term, body]) => `<div><dt>${term}</dt><dd>${body}</dd></div>`).join('')}</dl>
+            ${c.facts.map(f => `<p>${f}</p>`).join('')}
           </div>
         </div>
       </div>
     </section>`).join('')}
     <section class="outro panel" id="outro">
       <div class="copy">
-        <p class="kicker">Colophon</p>
         <h2>Charted, not imagined.</h2>
         <p class="story-lede">Every fact folded into these shores was checked against Kerala Tourism's destination notes. The painting itself is made live in your browser - no photographs were used.</p>
         <ul class="sources">
@@ -177,6 +168,6 @@ addEventListener('scroll', update, {passive:true}); update();
 if (!reduceMotion && window.gsap && window.ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
   gsap.to(':root',{ '--scroll': 1, ease:'none', scrollTrigger:{ trigger:'#hero', start:'top top', end:'+=180%', scrub:true, pin:true }});
-  gsap.utils.toArray('.panel').forEach(panel => gsap.from(panel.querySelectorAll('h1 span,h2,.kicker,.story-lede,.deeper'), { y:80, opacity:0, filter:'blur(18px)', stagger:.08, scrollTrigger:{ trigger:panel, start:'top 70%', end:'center center', scrub:1 }}));
+  gsap.utils.toArray('.panel').forEach(panel => gsap.from(panel.querySelectorAll('h1 span,h2,.story-lede,.deeper'), { y:80, opacity:0, filter:'blur(18px)', stagger:.08, scrollTrigger:{ trigger:panel, start:'top 70%', end:'center center', scrub:1 }}));
 }
 if (!reduceMotion && window.Lenis) { const lenis = new Lenis({lerp:.075,smoothWheel:true}); function raf(time){ lenis.raf(time); requestAnimationFrame(raf); } requestAnimationFrame(raf); }
