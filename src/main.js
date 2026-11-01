@@ -69,8 +69,10 @@ app.innerHTML = `
   <main>
     <section class="hero panel" id="hero">
       <div class="mist"></div>
-      <h1><span>Five shores,</span><span>one long light</span></h1>
-      <p class="lede">A painted journey up Kerala's coast - each beach rendered in broken tropical colour, each with its true story folded inside.</p>
+      <div class="copy hero-copy">
+        <h1><span>Five shores,</span><span>one long light</span></h1>
+        <p class="lede">A painted journey up Kerala's coast - each beach rendered in broken tropical colour, each with its true story folded inside.</p>
+      </div>
     </section>
     ${CHAPTERS.map(c => `
     <section class="story panel ${c.id}" id="${c.id}">
