@@ -1,173 +1,54 @@
-const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+const places=[{"id": "kovalam", "name": "Kovalam, three crescents", "detail": "A rocky headland shapes the bays. Above Lighthouse Beach, the red-and-white Vizhinjam lighthouse gives the coast its unmistakable landmark.", "camera": [23, 15, 29], "color": 12509399, "source": "kovalam-beach/236", "facts": ["Kovalam has three crescent-shaped beaches. A rocky headland shelters the bay. Conditions still change: a quiet-looking sea is not a safety guarantee.", "The Vizhinjam lighthouse overlooks Lighthouse Beach. The illustration simplifies its bands, gallery and headland, rather than reproducing exact proportions."]}, {"id": "varkala", "name": "Varkala, red cliffs and tide", "detail": "Laterite cliffs rise straight behind the sand. Trace the rust-coloured face above Papanasam, then turn towards the long open horizon.", "camera": [23, 14, 29], "color": 15124660, "source": "varkala-beach/328", "facts": ["The red laterite cliffs are the Varkala Formation, a geological feature beside the sea. Kerala Tourism notes their national geological monument status.", "Papanasam is a place of religious significance, near the Janardhana Swamy temple. Its name is associated with the belief that bathing here absolves sins. This is a belief, not a health claim."]}, {"id": "alappuzha", "name": "Alappuzha, water beyond the shore", "detail": "This chapter turns inland from the beach, into palm-lined backwaters. A kettuvallam moves through the channel, its curved woven roof reflected in jade water.", "camera": [24, 17, 29], "color": 12047554, "source": "alappuzha-beach/60", "facts": ["Alappuzha is known for canals, lakes, lagoons and beaches. This scene depicts the nearby backwaters, not an ocean beach or a navigable route.", "Traditional kettuvallam houseboats use materials including bamboo, coir and wood. The Nehru Trophy is associated with long snake boats; the houseboat here is not a racing boat."]}, {"id": "marari", "name": "Marari, a working shore", "detail": "Coconut palms, pale sand and fishing boats. Marari takes its name from Mararikulam, a fishing village: the coast is a place of work as well as rest.", "camera": [22, 13, 28], "color": 14213316, "source": "marari-beach/613", "facts": ["Marari is in Alappuzha district and is named for Mararikulam. Kerala Tourism describes palms, golden sand and the life of the fishing community.", "This is an illustration of a working fishing shore. Give people and their boats space. Any boat trip depends on consent, the operator and current sea conditions."]}, {"id": "bekal", "name": "Bekal, laterite above the sea", "detail": "Round bastions project from thick laterite walls on a coastal promontory. Walk the shape with the camera; the fort meets a long arc of beach below.", "camera": [25, 18, 32], "color": 14991779, "source": "bekal-fort/303", "facts": ["Bekal Fort stands on a promontory in Kasaragod. Its thick laterite walls and projecting bastions face the Arabian Sea.", "Kerala Tourism describes a keyhole-shaped plan, water tank and observation tower. The scene keeps those signature forms, but it is not a measured model or an access map."]}];
+let selected=0,motion=!matchMedia('(prefers-reduced-motion: reduce)').matches,seen=new Set();try{seen=new Set(JSON.parse(localStorage.getItem('kerala-seen'))||[])}catch{}
+const $=s=>document.querySelector(s),canvas=$('#world');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setClearColor(0xa7d4ce);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;
+const scene=new THREE.Scene();const camera=new THREE.PerspectiveCamera(43,1,.1,180);const controls=new OrbitControls(camera,canvas);controls.enableDamping=false;controls.minDistance=12;controls.maxDistance=46;controls.maxPolarAngle=Math.PI*.47;controls.minPolarAngle=.15;controls.enablePan=false;controls.target.set(0,2,0);
+scene.add(new THREE.HemisphereLight(0xfff1d1,0x4b655c,2));const sun=new THREE.DirectionalLight(0xffdca2,3.3);sun.position.set(-12,24,12);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.bias=-.0005;scene.add(sun);
+let dirty=true;controls.addEventListener('change',()=>dirty=true);let world=new THREE.Group();scene.add(world);let animated=[];
+const mat=(c,roughness=1)=>new THREE.MeshStandardMaterial({color:c,roughness,flatShading:true});const materials={};const M=c=>materials[c]||(materials[c]=mat(c));
+function mesh(g,c,x=0,y=0,z=0,parent=world){const m=new THREE.Mesh(g,typeof c==='number'?M(c):c);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function box(w,h,d,c,x=0,y=0,z=0,p=world){return mesh(new THREE.BoxGeometry(w,h,d),c,x,y,z,p)}
+function cyl(r1,r2,h,c,x=0,y=0,z=0,p=world,n=12){return mesh(new THREE.CylinderGeometry(r1,r2,h,n),c,x,y,z,p)}
+function sphere(r,c,x,y,z,p=world,sx=1,sy=1,sz=1){const m=mesh(new THREE.IcosahedronGeometry(r,2),c,x,y,z,p);m.scale.set(sx,sy,sz);return m}
+function beam(a,b,r,c,p=world){const aa=new THREE.Vector3(...a),bb=new THREE.Vector3(...b),m=cyl(r,r,aa.distanceTo(bb),c,0,0,0,p,6);m.position.copy(aa.clone().add(bb).multiplyScalar(.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),bb.sub(aa).normalize());return m}
+function ground(color){cyl(22,23,1.2,0xad9069,0,-.85,0);cyl(22,22,.3,color,0,-.15,0,world,96);for(let i=0;i<6;i++){const x=-21+i*8,z=-17-Math.sin(i*2)*2;sphere(4+i%3,0xb29d7d,x,.7,z,world,1,.4,1)}}
+function tree(x,z,scale=1,pine=true){const t=new THREE.Group();t.position.set(x,0,z);t.scale.setScalar(scale);world.add(t);cyl(.12,.24,3.5,0x76583e,0,1.75,0,t,7);if(pine){for(let i=0;i<4;i++)cyl(.05,1.3-i*.22,2, i%2?0x4f7160:0x3f6556,0,2.3+i*.7,0,t,8)}else{for(let i=0;i<5;i++){let a=i*2.4;sphere(1.1,0x829267,Math.cos(a)*.7,3.4+i*.12,Math.sin(a)*.6,t,1,.8,1)}}return t}
+function roof(w,h,d,c,x,y,z,p){const shape=new THREE.Shape();shape.moveTo(-w/2,0);shape.lineTo(w/2,0);shape.lineTo(0,h);shape.closePath();const g=new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:false});const m=mesh(g,c,x,y,z-d/2,p);return m}
+function house(x,z,w=2,h=3,c=0xe8d4a6){const p=new THREE.Group();p.position.set(x,0,z);world.add(p);box(w,h,2.3,c,0,h/2,0,p);roof(w+.3,.9,2.6,0xa95c44,0,h,0,p);for(let row=0;row<2;row++)for(let col=0;col<2;col++){box(.42,.65,.07,0x365b60,(col-.5)*w*.55,1+row*1.15,1.18,p);box(.52,.08,.13,0xf4dfb4,(col-.5)*w*.55,.68+row*1.15,1.21,p)}box(.5,1.1,.08,0x73543c,0,.55,1.19,p);if(c===0x80a9ae){for(let i=0;i<8;i++)for(let j=0;j<5;j++)box(.07,.07,.02,0xe6eee0,(j-2)*.32,.2+i*.35,1.2,p)}return p}
+function water(x,z,w,d){box(w,.15,d,0x599caa,x,.02,z);for(let i=0;i<30;i++){const line=box(.6+(i%4)*.45,.018,.035,i%2?0xc3d4c5:0x90bdba,x+((i*2.65)%w)-w/2,.11,z+((i*1.67)%d)-d/2);animated.push({mesh:line,type:'wave',base:line.position.x,phase:i*.7})}}
+function dome(x,y,z,r=1,c=0xefcf94,p=world){const d=mesh(new THREE.SphereGeometry(r,16,8,0,Math.PI*2,0,Math.PI/2),c,x,y,z,p);cyl(.07,.12,.7,c,x,y+r+.2,z,p,8);return d}
+function arch(x,y,z,w=1,h=2,c=0x633d32,p=world){box(w,h-w*.5,.08,c,x,y+(h-w*.5)/2,z,p);const a=mesh(new THREE.CircleGeometry(w*.5,16,0,Math.PI),c,x,y+h-w*.5,z,p);return a}
+function pavilion(x,y,z,r=1,c=0xe9c393,p=world){cyl(r,r,.18,c,x,y,z,p,12);for(let i=0;i<6;i++){const a=i*Math.PI/3;cyl(.07,.07,1.3,c,x+Math.cos(a)*r*.7,y+.7,z+Math.sin(a)*r*.7,p,6)}dome(x,y+1.4,z,r,c,p)}
+function flatHouse(x,z,w,h,c,p=world){box(w,h,w,c,x,h/2,z,p);box(w+.12,.2,w+.12,0xe0c49d,x,h+.1,z,p);for(const side of [-1,1])arch(x+side*w*.23,h*.45,z+w*.51,.35,.75,0x344c52,p);return p}
+function fort(x,z,c=0xba9760,scale=1){const p=new THREE.Group();p.position.set(x,0,z);p.scale.setScalar(scale);world.add(p);box(12,5,6,c,0,2.5,0,p);for(let j=-1;j<=1;j+=2)for(let i=-1;i<=1;i+=2){cyl(1.45,1.6,6,c,i*6,3,j*3,p,16);for(let k=0;k<8;k++){const a=k*Math.PI/4;box(.45,.55,.45,0xe0ba7a,i*6+Math.cos(a)*1.2,6.1,j*3+Math.sin(a)*1.2,p)}}for(let i=-5;i<=5;i++)box(.45,.5,.55,0xe0ba7a,i,5.15,3,p);arch(0,0,3.1,2,3.3,0x574231,p);for(let i=-4;i<=4;i+=2)arch(i,2.8,3.1,.6,1.2,0x745c3e,p);return p}
+function lake(x,z,w,d,c=0x6bafa9){const m=box(w,.12,d,c,x,.12,z);for(let i=0;i<14;i++){let z2=z-d*.45+(i/14)*d;const wave=box(1.2+i%3,.025,.05,0xb7d2bc,x-w*.4+(i*3.7)%(w*.8),.2,z2);animated.push({mesh:wave,type:'wave',base:wave.position.x,phase:i})}return m}
+function boat(x,z,angle=0){const g=new THREE.Group();g.position.set(x,.35,z);g.rotation.y=angle;world.add(g);sphere(1,0x7e4a31,0,0,0,g,1.7,.22,.48);box(1.7,.1,.55,0xcf9e58,0,.12,0,g);return g}
 
-const SOURCES = {
-  kovalam: 'https://www.keralatourism.org/destination/kovalam-beach/236/',
-  lighthouse: 'https://www.keralatourism.org/destination/lighthouse-beach-kovalam/432/',
-  varkala: 'https://www.keralatourism.org/destination/varkala-beach/328/',
-  alappuzha: 'https://www.keralatourism.org/destination/alappuzha-beach/60/',
-  marari: 'https://www.keralatourism.org/destination/marari-beach/613/',
-  bekal: 'https://www.keralatourism.org/destination/bekal-kasaragod/259/',
-  bekalfort: 'https://www.keralatourism.org/destination/bekal-fort/303/'
-};
+function palm(x,z,scale=1){const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);world.add(g);for(let i=0;i<8;i++){cyl(.15-i*.009,.18-i*.009,.65,0x916e45,Math.sin(i*.14)*.5,.3+i*.6,0,g,7)}const top=new THREE.Vector3(.45,5,0);for(let i=0;i<9;i++){const a=i*Math.PI*2/9;for(let j=0;j<5;j++){const t=j/4;const leaf=sphere(1, j%2?0x477d54:0x629c63,top.x+Math.cos(a)*(t*2.9+.3),top.y+Math.sin(t*Math.PI)*.8-t*.9,Math.sin(a)*(t*2.9+.3),g,1,.07,.31);leaf.rotation.y=-a;leaf.scale.x=.8}}for(let i=0;i<3;i++)sphere(.22,0x6c7240,.2+i*.18,4.8,.2,g);return g}
+function coast(){cyl(22,23,1.3,0xbca178,0,-1,0,world,96);cyl(22,22,.15,0x3d9294,0,-.25,0,world,96);const land=mesh(new THREE.CylinderGeometry(21.8,22,.5,96,1,false,0,Math.PI),0xe4c894);land.rotation.y=Math.PI/2;land.position.y=-.1;for(let i=0;i<80;i++){const x=-20+(i*3.71)%40,z=1+(i*1.73)%17;if(x*x+z*z<420){const w=box(.6+(i%4)*.4,.025,.04,i%4===0?0xe4e1ba:0x80bcb5,x,.06,z);animated.push({mesh:w,type:'wave',base:x,phase:i})}}for(let i=0;i<40;i++){const a=(i/39)*Math.PI;const x=Math.cos(a)*21.5,z=-Math.sin(a)*21.5;box(.8,.03,.4,0xeedbad,x,.14,z)}}
+function lighthouse(){const g=new THREE.Group();g.position.set(-4,0,-2);world.add(g);sphere(5,0x7b8170,0,.5,0,g,1,.45,.8);for(let i=0;i<8;i++)cyl(1.05-i*.035,1.08-i*.035,1.1,i%2?0xf2e4c6:0xb44e43,0,1.5+i*1.1,0,g,24);cyl(1.35,1.35,.25,0xe8dac2,0,10.2,0,g,24);cyl(.75,.75,1.1,0x4e7474,0,10.8,0,g,12);cyl(0,.95,.7,0x934436,0,11.7,0,g,16);for(let i=0;i<12;i++){const a=i*Math.PI/6;beam([Math.cos(a)*1.25,10.3,Math.sin(a)*1.25],[Math.cos(a)*1.25,10.9,Math.sin(a)*1.25],.035,0x4c5e58,g)}cyl(1.25,1.25,.06,0x4c5e58,0,10.9,0,g,24);box(1,1.8,.1,0x4f5f56,0,1.3,1.1,g)}
+function houseboat(){const g=boat(1,4,-.3);g.scale.set(2.2,1.5,2.4);const roof=mesh(new THREE.CylinderGeometry(.7,.7,2.5,16,1,false,0,Math.PI),0xbf9b61,0,.7,0,g);roof.rotation.z=Math.PI/2;for(let i=0;i<12;i++)box(.035,.75,1.2,0x967340,-1.2+i*.22,.55,0,g);for(const x of [-.7,0,.7])box(.5,.4,.04,0x365d55,x,.55,.64,g);return g}
+function build(index){dirty=true;scene.remove(world);world.traverse(o=>{if(o.isMesh)o.geometry.dispose()});world=new THREE.Group();scene.add(world);animated=[];const c=places[index];scene.background=new THREE.Color(c.color);scene.fog=new THREE.Fog(c.color,65,140);coast();const glow=mesh(new THREE.SphereGeometry(2.4,24,16),new THREE.MeshBasicMaterial({color:0xffe8ab}),-18,20,-32);glow.castShadow=false;
+if(index===0){lighthouse();for(let i=0;i<5;i++){const x=5+i*2.5,z=-9-i%2*3;palm(x,z,.8+i*.06)}for(let i=0;i<6;i++)sphere(2,0x7c8272,-12+i*2,.4,-3-i%3,world,1,.6,.7);boat(10,7,.6)}
+if(index===1){for(let i=0;i<15;i++){const x=-17+i*2.45,h=4.5+Math.sin(i*.8)*.5,z=-5+Math.sin(i*1.7)*.5;const cliff=cyl(1.75,2.05,h,[0xb46b48,0xbf7651,0xa65e41][i%3],x,h/2,z,world,5);cliff.scale.z=1.7;cliff.rotation.y=i*.11;const cap=cyl(1.8,1.75,.17,0x82945b,x,h+.08,z,world,5);cap.scale.z=1.7;cap.rotation.y=i*.11;for(let j=0;j<4;j++){const crack=box(.035,.4+j*.1,.03,0x986045,x+.3*Math.sin(j+i),.7+j*.9,z+2.8);crack.rotation.z=.2*Math.sin(i)}}for(let i=0;i<6;i++){const t=palm(-15+i*5,-7,.8);t.position.y=5}for(let i=0;i<4;i++)sphere(3-i*.35,0xf0d8ac,2,.03,1+i*.6,world,1.4,.025,.5)}
+if(index===2){box(35,.2,15,0x427f75,0,.08,0);for(let i=0;i<35;i++){const w=box(1.2+i%3,.025,.05,0x9ebfaf,-16+(i*3.7)%32,.2,-6+(i*1.3)%12);animated.push({mesh:w,type:'wave',base:w.position.x,phase:i})}for(const side of [-1,1]){box(34,.4,5,0x94a873,0,.25,side*10);for(let i=0;i<7;i++)if(side<0||i<2||i>4)palm(-15+i*5,side*10,.65+(i%3)*.15)}houseboat();for(let i=0;i<4;i++){const h=house(-9+i*6,-14,2,2.3,0xe3d6a7);h.scale.setScalar(.8)}}
+if(index===3){for(let i=0;i<9;i++)palm(-16+i*4,-7-i%3*2,.8+i%3*.15);for(let i=0;i<3;i++){const b=boat(-6+i*5,-2,Math.PI*.1);b.position.y=.35;b.scale.set(1.4,1,1.3);box(1.4,.12,.8,[0xb46e43,0x638d87,0xd1aa61][i],b.position.x,.6,-2)}for(let i=0;i<5;i++){beam([6+i*.4,.2,-3],[6+i*.4,1.4,-4],.04,0x7b7152);beam([6+i*.4,1.4,-4],[9,1.1,-4],.025,0x7b7152)}}
+if(index===4){const g=new THREE.Group();g.position.set(0,.25,-3);g.rotation.y=-.2;world.add(g);box(16,3.5,7,0x895e44,0,1.75,0,g);box(15.5,.2,6.7,0x82905a,0,3.6,0,g);for(const x of [-8,8]){cyl(2.5,2.8,4.1,0x94674b,x,2,3,g,24);cyl(2.15,2.15,.12,0x89945d,x,4.12,3,g,24);for(let i=0;i<14;i++){let a=i*Math.PI/7;box(.4,.5,.45,0xa67c55,x+Math.cos(a)*2.3,4.3,3+Math.sin(a)*2.3,g)}}for(let i=-7;i<=7;i++)box(.5,.45,.6,0xa67c55,i,3.8,3.5,g);for(let i=-7;i<=7;i+=2)arch(i,1.3,3.54,.2,.6,0x493d30,g);box(3,3,3,0xa17755,0,5.1,-1,g);box(3.6,.25,3.6,0xbbb18b,0,6.7,-1,g);box(3,.1,2,0x4c726b,-3,3.75,-1,g);for(let i=0;i<4;i++)palm(-14+i*4,-11,.65)}
+// Bake static geometry by material so palms do not cost hundreds of draw calls.
+world.updateMatrixWorld(true);const moving=new Set(animated.map(a=>a.mesh)),batches=new Map(),original=[];world.traverse(o=>{if(o.isMesh&&!moving.has(o)){const k=o.material.uuid;if(!batches.has(k))batches.set(k,{material:o.material,geometries:[],shadow:o.castShadow});const b=batches.get(k),g=o.geometry.clone();g.applyMatrix4(o.matrixWorld);const n=g.toNonIndexed?g.index?g.toNonIndexed():g:g;b.geometries.push(n);original.push(o)}});for(const o of original){o.removeFromParent();o.geometry.dispose()}for(const b of batches.values()){const g=mergeGeometries(b.geometries,false);if(g){const m=new THREE.Mesh(g,b.material);m.castShadow=b.shadow;m.receiveShadow=true;world.add(m)}for(const x of b.geometries)x.dispose()}
+resetCamera();canvas.dataset.chapter=''+index;canvas.dataset.ready='true';}
+function resize(){dirty=true;const r=canvas.getBoundingClientRect(),w=r.width,h=r.height;renderer.setSize(w,h,false);camera.aspect=w/h;camera.clearViewOffset();if(innerWidth>768)camera.setViewOffset(w,h,-w*.11,0,w,h);camera.updateProjectionMatrix();controls.update()}
+function resetCamera(){controls.autoRotate=false;controls.enableDamping=false;camera.position.set(...places[selected].camera);controls.target.set(0,3,0);controls.update();resize()}
+window.addEventListener('resize',resize);canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(e.key))return;e.preventDefault();if(e.key==='Home'){resetCamera();return}const v=camera.position.clone().sub(controls.target),s=new THREE.Spherical().setFromVector3(v);s.theta+=e.key==='ArrowLeft'?.15:e.key==='ArrowRight'?-.15:0;s.phi=THREE.MathUtils.clamp(s.phi+(e.key==='ArrowUp'?-.1:e.key==='ArrowDown'?.1:0),.15,Math.PI*.47);camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(s));controls.update()});
 
-const CHAPTERS = [
-  {
-    id: 'kovalam', place: 'Kovalam',
-    headline: 'Three crescents cup the tide into stillness - a rocky headland breaks the swell, and the bay behind it turns to glass.',
-    cue: 'Why the water stays calm',
-    facts: [
-      'Three crescent beaches in a row, their rocky headland taming the Arabian Sea into a sheltered bay.',
-      'The red-and-white Vizhinjam lighthouse has stood here since 1972; climb its 36 metres for the full curve of the coast.',
-      'Kindest from November to March.'
-    ]
-  },
-  {
-    id: 'varkala', place: 'Varkala',
-    headline: 'Red cliffs lean over a sea that forgives - laterite walls holding the beach in a natural amphitheatre of wind and spray.',
-    cue: 'The cliffs that shouldn\u2019t exist',
-    facts: [
-      'Kerala Tourism calls this the only place in southern Kerala where cliffs stand against the sea - a national geological monument known to geologists as the Varkala Formation.',
-      'Below is Papanasam, "destruction of sins", where pilgrims have bathed for centuries beside the ancient Janardhana Swamy temple.',
-      'Sunset from the cliff edge is the daily ceremony.'
-    ]
-  },
-  {
-    id: 'alappuzha', place: 'Alappuzha',
-    headline: 'The sea steps back and the lagoons begin - water streets where the roads should be.',
-    cue: 'Nine hundred kilometres of still water',
-    facts: [
-      'Behind the beach, one labyrinth of canals, lakes and inlets runs over 900 kilometres - the "Venice of the East".',
-      'Drift it on a kettuvallam, a houseboat built by hand from bamboo, coir and wood, meals cooked on board as village life slides past.',
-      'Snake boats race for the Nehru Trophy each August; the cruising season is October to March.'
-    ]
-  },
-  {
-    id: 'marari', place: 'Marari',
-    headline: 'The beach that kept its quiet - palms, sand and time, named for the fishing village of Mararikulam.',
-    cue: 'What the quiet is made of',
-    facts: [
-      'A working fishing shore: Kerala Tourism notes the beach has no shacks and no water sports, and that absence is the luxury.',
-      'Cycle into the village and watch the fishermen at work; if they judge the sea safe, a conversation can end in a boat ride.',
-      'The Alappuzha backwaters, Kumarakom Bird Sanctuary and the International Coir Museum sit within easy reach.'
-    ]
-  },
-  {
-    id: 'bekal', place: 'Bekal',
-    headline: 'A stone giant stands watch over gold - history above, emptiness below.',
-    cue: 'The fort that guards the beach',
-    facts: [
-      'Kerala\u2019s largest and best-preserved fort: laterite slabs in a unique polygonal plan, observation towers over the Arabian Sea.',
-      'Below the ramparts, a beach so wide it rarely feels occupied.',
-      'Come at sunset, when the sky runs orange and pink and the fort turns to silhouette.'
-    ]
-  }
-];
-
-const app = document.querySelector('#app');
-app.innerHTML = `
-  <canvas class="webgl" aria-label="Animated impressionist painting of the Kerala coastline"></canvas>
-  <main>
-    <section class="hero panel" id="hero">
-      <div class="mist"></div>
-      <h1><span>Five shores,</span><span>one long light</span></h1>
-      <p class="lede">A painted journey up Kerala's coast - each beach rendered in broken tropical colour, each with its true story folded inside.</p>
-    </section>
-    ${CHAPTERS.map(c => `
-    <section class="story panel ${c.id}" id="${c.id}">
-      <div class="copy">
-        <h2>${c.place}</h2>
-        <p class="story-lede">${c.headline}</p>
-        <div class="deeper-wrap">
-          <button class="deeper" type="button" aria-expanded="false" aria-controls="deep-${c.id}"><span class="pulse" aria-hidden="true"></span>${c.cue}</button>
-          <div class="deep" id="deep-${c.id}" hidden>
-            ${c.facts.map(f => `<p>${f}</p>`).join('')}
-          </div>
-        </div>
-      </div>
-    </section>`).join('')}
-    <section class="outro panel" id="outro">
-      <div class="copy">
-        <h2>Charted, not imagined.</h2>
-        <p class="story-lede">Every fact folded into these shores was checked against Kerala Tourism's destination notes. The painting itself is made live in your browser - no photographs were used.</p>
-        <ul class="sources">
-          <li><a href="${SOURCES.kovalam}" target="_blank" rel="noopener">Kovalam</a> &amp; <a href="${SOURCES.lighthouse}" target="_blank" rel="noopener">Lighthouse Beach</a></li>
-          <li><a href="${SOURCES.varkala}" target="_blank" rel="noopener">Varkala &amp; Papanasam</a></li>
-          <li><a href="${SOURCES.alappuzha}" target="_blank" rel="noopener">Alappuzha</a> &amp; <a href="${SOURCES.marari}" target="_blank" rel="noopener">Marari</a></li>
-          <li><a href="${SOURCES.bekal}" target="_blank" rel="noopener">Bekal</a> &amp; <a href="${SOURCES.bekalfort}" target="_blank" rel="noopener">Bekal Fort</a></li>
-        </ul>
-      </div>
-    </section>
-  </main>`;
-
-// Progressive disclosure - clutter stays folded until invited.
-document.querySelectorAll('.deeper').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const panel = document.getElementById(btn.getAttribute('aria-controls'));
-    const open = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', String(!open));
-    panel.hidden = open;
-    if (!open && !reduceMotion) {
-      panel.classList.remove('shown');
-      requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.add('shown')));
-    } else if (!open) {
-      panel.classList.add('shown');
-    }
-  });
-});
-
-// --- The living painting: one canvas, a palette per shore ---
-const PALETTES = [
-  { sky0: '#ffc978', sky1: '#ffe5a6', sea0: '#40cddd', sea1: '#0a5271', sand: '#eab15b' }, // hero: monsoon gold
-  { sky0: '#ffd98e', sky1: '#fff3c9', sea0: '#4fd8d2', sea1: '#0b5e78', sand: '#f0bc62' }, // kovalam: turquoise
-  { sky0: '#ffb27a', sky1: '#ffe1b3', sea0: '#38b8c8', sea1: '#0a4a63', sand: '#c96b4a' }, // varkala: laterite rose
-  { sky0: '#cfe8d8', sky1: '#fff6d8', sea0: '#3fbfae', sea1: '#0c5a63', sand: '#d9c489' }, // alappuzha: jade backwater
-  { sky0: '#ffe9b8', sky1: '#fff8e2', sea0: '#57d3cc', sea1: '#14637c', sand: '#f2cd7d' }, // marari: pearl quiet
-  { sky0: '#ff9e6b', sky1: '#ffd9a0', sea0: '#2ea8b8', sea1: '#0a4258', sand: '#e8a95c' }, // bekal: sunset ember
-  { sky0: '#ffc978', sky1: '#ffe5a6', sea0: '#40cddd', sea1: '#0a5271', sand: '#eab15b' }  // outro: home gold
-];
-function hexRgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
-function mix(a, b, t) { return [0, 1, 2].map(i => Math.round(a[i] + (b[i] - a[i]) * t)); }
-const PALETTE_RGB = PALETTES.map(p => Object.fromEntries(Object.entries(p).map(([k, v]) => [k, hexRgb(v)])));
-function lerpPalette(p) {
-  const x = Math.max(0, Math.min(1, p)) * (PALETTE_RGB.length - 1);
-  const i = Math.min(PALETTE_RGB.length - 2, Math.floor(x));
-  const t = x - i, A = PALETTE_RGB[i], B = PALETTE_RGB[i + 1], out = {};
-  for (const k of Object.keys(A)) out[k] = `rgb(${mix(A[k], B[k], t).join(',')})`;
-  return out;
-}
-
-const canvas = document.querySelector('.webgl');
-const ctx = canvas.getContext('2d');
-let width = 0, height = 0, scrollProgress = 0, journey = 0;
-function resize(){ width = canvas.width = innerWidth * devicePixelRatio; height = canvas.height = innerHeight * devicePixelRatio; canvas.style.width = innerWidth+'px'; canvas.style.height = innerHeight+'px'; }
-addEventListener('resize', resize); resize();
-
-function dab(x,y,r,color,a=1){ ctx.globalAlpha=a; ctx.fillStyle=color; ctx.beginPath(); ctx.ellipse(x,y,r*1.9,r,Math.sin(x+y),0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; }
-function paint(t){
-  const s = scrollProgress, pal = lerpPalette(journey), horizon = height*(.58 - s*.28);
-  const sky = ctx.createLinearGradient(0,0,0,height); sky.addColorStop(0,pal.sky0); sky.addColorStop(.42,pal.sky1); sky.addColorStop(.75,pal.sea0); sky.addColorStop(1,pal.sea1); ctx.fillStyle=sky; ctx.fillRect(0,0,width,height);
-  ctx.fillStyle=pal.sand; ctx.fillRect(0,horizon,width,height-horizon);
-  const sea = ctx.createLinearGradient(0,horizon,0,height); sea.addColorStop(0,pal.sea0); sea.addColorStop(1,pal.sea1); ctx.fillStyle=sea; ctx.fillRect(0,horizon,width,height-horizon);
-  for(let i=0;i<220;i++){ const x=((i*83 + t*.018*(i%7+1))%width); const y=(Math.sin(i*12.7+t*.001)*30+horizon+(i%90)/90*(height-horizon)); const hue=i%3===0?'255,236,177':i%3===1?'77,215,218':'20,112,129'; dab(x,y,18+(i%11)*2,`rgb(${hue})`,.13); }
-  for(let i=0;i<22;i++){ const y=horizon+i*height*.028+Math.sin(t*.001+i)*14; ctx.strokeStyle=`rgba(255,245,207,${.28-i*.006})`; ctx.lineWidth=2+devicePixelRatio; ctx.beginPath(); for(let x=0;x<width;x+=40){ctx.lineTo(x,y+Math.sin(x*.012+t*.001+i)*10)} ctx.stroke(); }
-  ctx.save(); ctx.translate(width*.13,height*.61); ctx.rotate(-.22+Math.sin(t*.001)*.035); ctx.fillStyle='rgba(8,61,42,.72)'; ctx.fillRect(-8,-height*.34,16,height*.38); for(let i=0;i<10;i++){ ctx.rotate((Math.PI*2)/10); ctx.beginPath(); ctx.ellipse(70,0,92,14,0,0,Math.PI*2); ctx.fill(); } ctx.restore();
-  if (!reduceMotion) requestAnimationFrame(paint);
-}
-requestAnimationFrame(paint);
-
-function update(){
-  scrollProgress = Math.min(1, scrollY / (innerHeight*1.8));
-  const range = document.documentElement.scrollHeight - innerHeight;
-  journey = range > 0 ? Math.min(1, scrollY / range) : 0;
-  document.documentElement.style.setProperty('--scroll', scrollProgress.toFixed(3));
-  document.querySelectorAll('.panel').forEach(p=>{ const r=p.getBoundingClientRect(); p.style.setProperty('--reveal', Math.max(0, Math.min(1, 1-Math.abs(r.top-innerHeight*.25)/innerHeight)).toFixed(3)); });
-  if (reduceMotion) paint(0);
-}
-addEventListener('scroll', update, {passive:true}); update();
-
-if (!reduceMotion && window.gsap && window.ScrollTrigger) {
-  gsap.registerPlugin(ScrollTrigger);
-  gsap.to(':root',{ '--scroll': 1, ease:'none', scrollTrigger:{ trigger:'#hero', start:'top top', end:'+=180%', scrub:true, pin:true }});
-  gsap.utils.toArray('.panel').forEach(panel => gsap.from(panel.querySelectorAll('h1 span,h2,.story-lede,.deeper'), { y:80, opacity:0, filter:'blur(18px)', stagger:.08, scrollTrigger:{ trigger:panel, start:'top 70%', end:'center center', scrub:1 }}));
-}
-if (!reduceMotion && window.Lenis) { const lenis = new Lenis({lerp:.075,smoothWheel:true}); function raf(time){ lenis.raf(time); requestAnimationFrame(raf); } requestAnimationFrame(raf); }
+let priorFocus;function panel(title,html){priorFocus=document.activeElement;$('#panel-content').innerHTML=`<h2 id="panel-title">${title}</h2>${html}`;$('#panel').showModal();$('#close').focus()}$('#close').onclick=()=>$('#panel').close();$('#panel').addEventListener('close',()=>priorFocus?.focus());
+function render(){seen.add(selected);try{localStorage.setItem('kerala-seen',JSON.stringify([...seen]))}catch{}const c=places[selected];$('#chapter').value=''+selected;$('#position').textContent=`${selected+1} of 5`;$('#seen').textContent=`${seen.size} / 5 explored`;$('#place').textContent=c.name;$('#detail').textContent=c.detail;$('#prev').disabled=selected===0;$('#next').disabled=selected===4;$('#story').scrollTop=0;build(selected)}
+places.forEach((c,i)=>$('#chapter').add(new Option(c.name.split(',')[0],''+i)));$('#chapter').onchange=e=>{selected=+e.target.value;render()};$('#prev').onclick=()=>{selected=Math.max(0,selected-1);render()};$('#next').onclick=()=>{selected=Math.min(4,selected+1);render()};$('#reset').onclick=resetCamera;
+$('#theme').onclick=()=>{document.body.classList.toggle('dark');$('#theme').textContent=document.body.classList.contains('dark')?'Light UI':'Dark UI'};function motionLabel(){document.body.dataset.motion=motion?'playing':'paused';$('#motion').textContent=motion?'Pause motion':'Play motion'}$('#motion').onclick=()=>{motion=!motion;motionLabel()};motionLabel();
+$('#discover').onclick=()=>{const c=places[selected];panel(c.name,`${c.facts.map(f=>`<p>${f}</p>`).join('')}<p><a href="https://www.keralatourism.org/destination/${c.source}/" target="_blank" rel="noopener">Kerala Tourism place guide</a></p><p class="source-note">Introductions checked against the place guide. Not current access, opening-hours, weather or swimming advice.</p>`)};
+$('#guide').onclick=()=>panel('Five shores, one long light',`<h3>A coastline to turn in your hands</h3><p>Choose any of five places. Drag or use the arrow keys to orbit freely. Scroll or pinch to zoom; Home or Reset view restores the composed angle. Motion animates water, independently of sound. The explored count stays in this browser.</p><h3>A painted interpretation</h3><p>These original geometric illustrations use the warm light, jade water and broken colour of the earlier painting. They are not photographs or measured reconstructions. Alappuzha depicts the nearby inland backwaters, not the beach. No people or buildings are placed as navigation instructions.</p><h3>Sound, only by invitation</h3><p>Sound on starts a quiet, synthesized wash of filtered noise. It is an abstract tide texture, not a field recording from Kerala. Sound off closes the audio context. No audio loads or plays on arrival.</p><h3>Place sources</h3>${places.map(c=>`<p><a href="https://www.keralatourism.org/destination/${c.source}/" target="_blank" rel="noopener">Kerala Tourism: ${c.id}</a></p>`).join('')}<p>The earlier five-chapter scrollytelling source is preserved in the repository's legacy folder. Third-party animation scripts are no longer required.</p>`);
+const sound={ctx:null,on:false,gain:null,source:null};$('#sound').onclick=()=>{sound.on=!sound.on;if(sound.on){const ctx=new(window.AudioContext||window.webkitAudioContext)();sound.ctx=ctx;const data=ctx.createBuffer(1,ctx.sampleRate*12,ctx.sampleRate),a=data.getChannelData(0);let last=0;for(let i=0;i<a.length;i++){last=.97*last+.03*(Math.random()*2-1);a[i]=last*(.55+.35*Math.sin(i/ctx.sampleRate*.65))}const src=ctx.createBufferSource();src.buffer=data;src.loop=true;const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=1100;const gain=ctx.createGain();gain.gain.value=.35;src.connect(filter).connect(gain).connect(ctx.destination);src.start();ctx.resume();sound.source=src;sound.gain=gain}else{sound.source?.stop();sound.ctx?.close();sound.ctx=null;sound.source=null;sound.gain=null}$('#sound').textContent=sound.on?'Sound off':'Sound on';$('#sound').setAttribute('aria-pressed',''+sound.on)};
+window.kerala={get selected(){return selected},sound,camera,controls,renderer,reset:resetCamera};let last=performance.now(),elapsed=0,lastRendered=0;function tick(now){requestAnimationFrame(tick);const dt=Math.min(.05,(now-last)/1000);last=now;if(motion)elapsed+=dt;for(const a of animated)if(a.type==='wave')a.mesh.position.x=a.base+Math.sin(elapsed*.5+a.phase)*.2;if((motion&&animated.length||dirty)&&now-lastRendered>40){renderer.render(scene,camera);dirty=false;lastRendered=now}}render();requestAnimationFrame(tick);
