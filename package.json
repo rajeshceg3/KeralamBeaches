@@ -1,1 +1,19 @@
-{"scripts":{"build":"node scripts/validate.mjs","dev":"python3 -m http.server 5173","preview":"python3 -m http.server 4173"},"devDependencies":{},"dependencies":{}}
+{
+  "name": "kerala-five-shores",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "verify": "node verification/check.cjs",
+    "test": "node verification/check.cjs"
+  },
+  "dependencies": {
+    "three": "^0.182.0"
+  },
+  "devDependencies": {
+    "vite": "^7.3.1",
+    "puppeteer-core": "^25.0.0"
+  }
+}
