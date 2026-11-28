@@ -3,12 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0",
-    "verify": "node verification/check.cjs",
-    "test": "node verification/check.cjs && node verification/audio-structure.cjs && node verification/disclosure.cjs",
-    "audio:preview": "node scripts/render-preview.mjs"
+    "dev": "python3 -m http.server 8080",
+    "build": "echo static site, no build",
+    "test": "node verification/static-check.cjs",
+    "verify": "node verification/static-check.cjs"
   },
   "dependencies": {
     "three": "^0.182.0"
